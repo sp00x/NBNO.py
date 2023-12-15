@@ -15,7 +15,8 @@ import concurrent.futures as cf
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
-
+import urllib.request, json
+from urllib.parse import urlparse
 
 class Book:
     """Holder styr på all info om bildefiler til bok/avis/mm."""
@@ -396,6 +397,18 @@ def main():
     args = parser.parse_args()
 
     if args.id:
+        if args.id.startswith("https://") or args.id.startswith("http://"):
+            u = urlparse(args.id)
+            chunks = u.path.split("/")
+            if chunks[1] == "items":
+                item_id = chunks[2]
+                print(f"Slår opp ID for: {item_id}")
+                with urllib.request.urlopen(f"https://api.nb.no/catalog/v1/items/{item_id}") as url:
+                    data = json.load(url)
+                    urn = data["metadata"]["identifiers"]["urn"]
+                    print(f"Fant ID: {urn}")
+                    args.id = urn
+
         if args.f2pdf:
             media_type = "dig" + args.id.split("dig")[1].split("_")[0]
             media_id = str(args.id.split(media_type + "_")[1])
