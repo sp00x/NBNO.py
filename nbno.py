@@ -56,6 +56,19 @@ class Book:
         self.get_manifest()
         self.image_lock = threading.Lock()
 
+    def set_cookies(self, cookie_file):
+        if cookie_file:
+            with open(cookie_file, "r") as file:
+                cookies = file.read().split(";")
+                for cookie in cookies:                    
+                    chunks = cookie.split("=", 1)
+                    if len(chunks) == 2:
+                        key, value = chunks
+                        key = key.strip()
+                        if key != "":
+                            print(f"Setter cookie: '{key}' = '{value}'")
+                            self.session.cookies.set(key, value, domain="nb.no")
+
     def set_tile_sizes(self, width, height):
         self.tile_width = width
         self.tile_height = height
@@ -395,6 +408,12 @@ def main():
         default="Mozilla/5.0",
     )
     optional.add_argument(
+        "--cookie_file",
+        metavar="<filnavn>",
+        help="Settes for å hente cookies fra en tekst-fil",
+        default=False
+    )
+    optional.add_argument(
         "--start", metavar="<int>", help="Sidetall å starte på", default=False
     )
     optional.add_argument(
@@ -439,6 +458,8 @@ def main():
             print("\n\nFerdig med å lage pdf.")
             exit()
         book = Book(args.id, args.user_agent)
+        if args.cookie_file:
+            book.set_cookies(args.cookie_file)
         if args.url:
             book.set_to_print_url()
         if args.error:
