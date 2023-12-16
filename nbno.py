@@ -21,7 +21,7 @@ from urllib.parse import urlparse
 class Book:
     """Holder styr på all info om bildefiler til bok/avis/mm."""
 
-    def __init__(self, digimedie):
+    def __init__(self, digimedie, user_agent):
         if digimedie.find("pliktmonografi") > -1:
             self.media_type = "pliktmonografi"
         else:
@@ -47,7 +47,8 @@ class Book:
         self.num_pages = 0
         self.resize = 0
         self.session = session()
-        self.session.headers["User-Agent"] = "Mozilla/5.0"
+        self.session.headers["User-Agent"] = user_agent
+        
         self.adapter = HTTPAdapter(max_retries=(Retry(total=5, backoff_factor=0.5)))
         self.session.mount("https://", self.adapter)
         self.session.mount("http://", self.adapter)
@@ -388,6 +389,12 @@ def main():
         default=False,
     )
     optional.add_argument(
+        "--user_agent",
+        metavar="<verdi>",
+        help="Settes for å bruke en annen User-agent enn standardverdien",
+        default="Mozilla/5.0",
+    )
+    optional.add_argument(
         "--start", metavar="<int>", help="Sidetall å starte på", default=False
     )
     optional.add_argument(
@@ -431,7 +438,7 @@ def main():
                     print("")
             print("\n\nFerdig med å lage pdf.")
             exit()
-        book = Book(args.id)
+        book = Book(args.id, args.user_agent)
         if args.url:
             book.set_to_print_url()
         if args.error:
