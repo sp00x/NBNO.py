@@ -65,7 +65,7 @@ class Book:
                     if len(chunks) == 2:
                         key, value = chunks
                         key = key.strip()
-                        if key != "":
+                        if key != "" and not key.startswith("#"):
                             print(f"Setter cookie: '{key}' = '{value}'")
                             self.session.cookies.set(key, value, domain="nb.no")
 
